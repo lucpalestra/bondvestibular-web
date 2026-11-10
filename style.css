@@ -114,3 +114,9 @@ th{color:var(--muted);font-size:13px;text-transform:uppercase;border-top:0}
 .livrobox .livro{border-top:0;padding:0}
 .disc span.link{cursor:pointer;border:1px solid var(--line)}
 .disc span.link:hover{border-color:var(--gold);color:var(--gold)}
+.res ol{margin:12px 0;padding-left:22px;line-height:1.6}
+.res li{margin:8px 0}
+.res .resp{display:inline-block;background:var(--ok);color:#06210f;font-weight:900;border-radius:10px;padding:6px 12px;margin-bottom:10px}
+.topico{padding:12px 0;border-top:1px solid var(--line)}
+.topico:first-of-type{border-top:0}
+.topico input{width:20px;height:20px;accent-color:var(--gold);flex-shrink:0}

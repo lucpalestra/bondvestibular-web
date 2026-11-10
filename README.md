@@ -1,4 +1,4 @@
-# BondVestibular v0.2 · BondLabs
+# BondVestibular v0.3 · BondLabs
 
 Site estático (HTML + CSS + JS puro, sem build). É só extrair e publicar.
 
@@ -36,3 +36,11 @@ provas/             cadernos oficiais (enemANO_d1.pdf / enemANO_d2.pdf)
 3. Em `data/conteudo.js`, adicione `{ ano: 2026, obs: "" }` no começo de `provas`.
 
 Os dados do usuário ficam no localStorage do navegador. Use Exportar/Importar na tela de stats.
+
+## Novidades v0.3
+- **Resolução passo a passo** dentro do banco (Matemática Enem 2025, 45 questões, em `data/resolucoes.js`) e botão **Resolver com IA** nas demais (usa `data/textos.json`).
+- **Programa completo de Matemática** (Enem + Fuvest) em `data/programa.js`, com checklist e link para as questões resolvidas de cada tópico.
+- Recortes das questões corrigidos em páginas de coluna única.
+
+## Atualizar o site (GitHub Pages)
+Extraia o pacote por cima da pasta e rode: `git pull`, `git add .`, `git commit -m "v0.3"`, `git push`.

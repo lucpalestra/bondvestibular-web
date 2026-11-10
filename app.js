@@ -3,7 +3,7 @@
 (function () {
   "use strict";
   const C = window.CONTEUDO, G = window.GABARITOS;
-  const VERSION = "v0.2";
+  const VERSION = "v0.3";
   const KEY = "bondvestibular_v0";
   const LIMITE = { D1: 330 * 60, D2: 300 * 60 }; // 5h30 e 5h
   const CORRECAO_URL = "https://www.preparaenem.com/enem/provas-gabaritos-e-correcoes-do-enem.htm";
@@ -282,7 +282,7 @@
   const BANCO_DE = { "Português (gramática e interpretação)": "LC|Português", "Literatura": "LC|Literatura", "Artes": "LC|Artes", "Educação Física": "LC|Educação Física", "TIC": "LC|TIC", "História": "CH|História", "Geografia": "CH|Geografia", "Filosofia": "CH|Filosofia", "Sociologia": "CH|Sociologia", "Física": "CN|Física", "Química": "CN|Química", "Biologia": "CN|Biologia", "Matemática": "MT|Matemática" };
   function materias() {
     $app.innerHTML = `${top("📚 Matérias")}
-      ${C.materias.map(m => `<div class="box"><h3>${m.ic} ${m.area} <span class="tag">${m.dia}</span></h3>
+      ${C.materias.map(m => `<div class="box"><h3>${m.ic} ${m.area} <span class="tag">${m.dia}</span></h3>${(window.PROGRAMA || {})[m.area] ? `<button class="btn" style="margin:4px 0 10px" data-go="#/programa">📋 Programa completo (Enem + Fuvest)</button>` : ""}
         <div class="disc">${m.disc.map(d => { const b = BANCO_DE[d]; return b ? `<span class="link" data-banco="${b}">${esc(d)} ›</span>` : `<span>${esc(d)}</span>`; }).join("")}</div>
         <div class="muted small" style="margin-top:12px">O que mais costuma cair:</div>
         <ul style="margin:6px 0 0;padding-left:20px">${m.foco.map(f => `<li>${esc(f)}</li>`).join("")}</ul></div>`).join("")}
@@ -332,9 +332,11 @@
   const certaDe = q => G[`${q.ano}_${q.dia}`][q.num <= 5 && q.dia === "D1" ? q.num + q.lang : String(q.num)];
   const imgDe = q => `questoes/${q.ano}_${q.dia.toLowerCase()}_${q.num}${q.lang}.webp`;
   let BF = { area: "MT", mat: "Matemática", ano: 0, so: "todas", i: 0 };
+  const RES = window.RESOLUCOES || {};
+  const temaDe = q => (RES[q.id] && RES[q.id].t) || [];
   function bancoLista() {
     S.banco = S.banco || {};
-    return Q.filter(q => q.area === BF.area && matDe(q) === BF.mat && (!BF.ano || q.ano === BF.ano) &&
+    return Q.filter(q => (BF.topic ? temaDe(q).includes(BF.topic) : (q.area === BF.area && matDe(q) === BF.mat)) && (!BF.ano || q.ano === BF.ano) &&
       (BF.so === "todas" || q.id === BF.pin || (BF.so === "novas" && !S.banco[q.id]) || (BF.so === "erradas" && S.banco[q.id] && !S.banco[q.id].ok)));
   }
   function banco() {
@@ -355,7 +357,7 @@
     if (BF.i >= lista.length) BF.i = Math.max(0, lista.length - 1);
     const q = lista[BF.i];
     const chips = (arr, cur, key) => arr.map(([v, l]) => `<button class="chip${cur === v ? " on" : ""}" data-f="${key}" data-v="${v}">${l}</button>`).join("");
-    const head = `${top(`${BF.mat}`, "#/banco")}
+    const head = `${top(BF.topic ? esc(topicoNome(BF.topic)) : `${BF.mat}`, BF.topic ? "#/programa" : "#/banco")}
       <div class="box" style="padding:14px 16px">
         <div class="chips">${chips([[0, "Todos os anos"], [2025, "2025"], [2024, "2024"], [2023, "2023"], [2022, "2022"]], BF.ano, "ano")}</div>
         <div class="chips" style="margin-top:8px">${chips([["todas", "Todas"], ["novas", "Não feitas"], ["erradas", "Que errei"]], BF.so, "so")}</div>
@@ -385,20 +387,54 @@
             ${r ? `<button class="btn ghost" id="redo">Refazer</button>` : ""}
           </div>
         </div>
+        ${resBox(q, certa, r)}
         <div class="box small">
           <div class="row"><a href="${pdfDe(`${q.ano}_${q.dia}`)}#page=${q.page}" target="_blank" rel="noopener">📄 Ver na prova (pág. ${q.page})</a> · <a href="${CORRECAO_URL}" target="_blank" rel="noopener">📺 Correção comentada</a></div>
           <div class="row" style="margin-top:10px"><span class="muted">Matéria errada? Mudar para:</span>
             <select id="fix" style="width:auto">${area.mats.map(m => `<option${m === matDe(q) ? " selected" : ""}>${m}</option>`).join("")}</select></div>
         </div>`;
       if (!anulada && !r) $app.querySelectorAll("[data-r]").forEach(b => b.onclick = () => { S.banco[q.id] = { r: b.dataset.r, ok: b.dataset.r === certa, t: Date.now() }; BF.pin = q.id; save(); bancoQ(); });
-      document.getElementById("prev").onclick = () => { BF.pin = null; BF.i--; bancoQ(); window.scrollTo(0, 0); };
-      document.getElementById("next").onclick = () => { const sai = BF.pin === q.id && BF.so !== "todas" && !(BF.so === "erradas" && r && !r.ok); BF.pin = null; if (!sai) BF.i++; bancoQ(); window.scrollTo(0, 0); };
+      document.getElementById("prev").onclick = () => { resAberta = false; BF.pin = null; BF.i--; bancoQ(); window.scrollTo(0, 0); };
+      document.getElementById("next").onclick = () => { resAberta = false; const sai = BF.pin === q.id && BF.so !== "todas" && !(BF.so === "erradas" && r && !r.ok); BF.pin = null; if (!sai) BF.i++; bancoQ(); window.scrollTo(0, 0); };
+      const vr = document.getElementById("vres"); if (vr) vr.onclick = () => { resAberta = !resAberta; bancoQ(); };
+      const ia = document.getElementById("ia"); if (ia) ia.onclick = () => pedirIA(q, certa);
       const redo = document.getElementById("redo"); if (redo) redo.onclick = () => { delete S.banco[q.id]; save(); bancoQ(); };
       document.getElementById("fix").onchange = e => { S.matFix = S.matFix || {}; S.matFix[q.id] = e.target.value; save(); toast(`Movida para ${e.target.value}`); bancoQ(); };
     }
     $app.querySelectorAll("[data-f]").forEach(b => b.onclick = () => { const v = b.dataset.v; BF[b.dataset.f] = b.dataset.f === "ano" ? +v : v; BF.i = 0; bancoQ(); });
   }
+  let resAberta = false, TEXTOS = null;
+  function resBox(q, certa, r) {
+    const res = RES[q.id];
+    if (res) {
+      const label = res.r === "X" ? "Questão anulada" : `Resposta: ${res.r}`;
+      if (!r && !resAberta) return `<div class="box"><button class="btn sec" id="vres">📘 Ver resolução passo a passo</button> <span class="muted small">(dica: tente responder antes)</span></div>`;
+      return `<div class="box res"><div class="row" style="justify-content:space-between"><h3 style="margin:0">📘 Resolução passo a passo</h3>${r ? "" : `<button class="btn ghost" id="vres">Esconder</button>`}</div>
+        <ol>${res.p.map(p => `<li>${p}</li>`).join("")}</ol>
+        <div class="resp">${label}</div>
+        ${res.t.length ? `<div class="disc">${res.t.map(t => `<span class="link" data-topico="${t}">${esc(topicoNome(t))} ›</span>`).join("")}</div>` : ""}</div>`;
+    }
+    return `<div class="box"><div class="row"><button class="btn sec" id="ia">✨ Resolver com IA</button><span class="muted small">Copia o pedido com a questão. Cole no Claude para ver o passo a passo.</span></div></div>`;
+  }
+  function pedirIA(q, certa) {
+    const go2 = () => {
+      const txt = (TEXTOS && TEXTOS[q.id]) || "";
+      const url = new URL(imgDe(q), location.href).href;
+      copy([
+        `Você é um professor de cursinho pré-vestibular. Resolva passo a passo, de forma didática, a questão ${q.num} do Enem ${q.ano} (${matDe(q)}).`,
+        `Explique: o que a questão pede, o raciocínio e as contas, por que a alternativa certa está certa e por que as outras estão erradas. No fim, diga qual conteúdo da matéria eu preciso revisar.`,
+        ``, `Imagem da questão (com as figuras): ${url}`,
+        certa && certa !== "X" ? `Gabarito oficial do Inep: ${certa}` : `Esta questão foi anulada pelo Inep.`,
+        ``, `Texto da questão (extraído do PDF, fórmulas e figuras podem ter saído com falhas; na dúvida, use a imagem):`, txt
+      ].join("\n"));
+    };
+    if (TEXTOS) return go2();
+    fetch("data/textos.json").then(r => r.json()).then(j => { TEXTOS = j; go2(); }).catch(() => { TEXTOS = {}; go2(); });
+  }
+  const topicoNome = id => { for (const m in (window.PROGRAMA || {})) for (const g of PROGRAMA[m].grupos) for (const it of g.itens) if (it.id === id) return it.t; return id; };
   document.addEventListener("click", e => {
+    const tp = e.target.closest("[data-topico]");
+    if (tp) { BF = { area: "MT", mat: "Matemática", ano: 0, so: "todas", i: 0, topic: tp.dataset.topico }; resAberta = false; location.hash === "#/banco/q" ? bancoQ() : go("#/banco/q"); return; }
     const el = e.target.closest("[data-banco]"); if (!el) return;
     const [area, mat] = el.dataset.banco.split("|"); BF = { area, mat, ano: 0, so: "todas", i: 0 };
     location.hash === "#/banco/q" ? bancoQ() : go("#/banco/q");
@@ -438,6 +474,28 @@
       S.redacoes.push({ modo: modoRed, tema: tema.value, texto: ta.value, data: Date.now(), palavras: (ta.value.trim().match(/\S+/g) || []).length });
       S.draft[modoRed] = ""; S.draft[modoRed + "_tema"] = ""; save(); toast("Redação salva ✅"); redacao();
     };
+  }
+
+  let progF = "todos";
+  function programa() {
+    const P = window.PROGRAMA["Matemática"]; S.prog = S.prog || {};
+    const all = P.grupos.flatMap(g => g.itens), feitos = all.filter(i => S.prog[i.id]).length;
+    const nQ = id => Q.filter(q => temaDe(q).includes(id)).length;
+    const badge = p => p === "EF" ? `<span class="tag">Enem + Fuvest</span>` : p === "E" ? `<span class="tag" style="background:#173a5c;color:#9cc8ff">só Enem</span>` : `<span class="tag" style="background:#3b2f12;color:var(--gold)">só Fuvest</span>`;
+    const ok = it => progF === "todos" || (progF === "enem" ? it.p.includes("E") : it.p.includes("F"));
+    $app.innerHTML = `${top("📐 Programa de Matemática", "#/materias")}
+      <div class="box"><p style="margin:0 0 10px;line-height:1.55">${esc(P.intro)}</p>
+        <div class="row" style="justify-content:space-between"><b>${feitos}/${all.length} estudados</b><span class="muted small">Fontes: Matriz de Referência do Enem (Inep) e programa da Fuvest 2027</span></div>
+        <div class="progress" style="margin-top:10px"><i style="width:${pct(feitos, all.length)}%"></i></div>
+        <div class="chips" style="margin-top:12px">${[["todos", "Tudo"], ["enem", "Cai no Enem"], ["fuvest", "Cai na Fuvest"]].map(([v, l]) => `<button class="chip${progF === v ? " on" : ""}" data-pf="${v}">${l}</button>`).join("")}</div></div>
+      ${P.grupos.map(g => { const its = g.itens.filter(ok); if (!its.length) return ""; return `<div class="box"><h3>${esc(g.g)}</h3>
+        ${its.map(it => { const n = nQ(it.id); return `<div class="topico"><label class="row" style="align-items:flex-start;gap:12px;flex-wrap:nowrap"><input type="checkbox" data-pid="${it.id}"${S.prog[it.id] ? " checked" : ""} style="margin-top:4px">
+          <span style="flex:1"><b>${esc(it.t)}</b> ${badge(it.p)}<div class="muted small" style="margin-top:4px;line-height:1.5">${esc(it.d)}</div>
+          ${n ? `<span class="link small" data-topico="${it.id}" style="display:inline-block;margin-top:6px;color:var(--gold);cursor:pointer;font-weight:800">📘 ${n} questã${n > 1 ? "ões" : "o"} resolvida${n > 1 ? "s" : ""} ›</span>` : ""}</span></label></div>`; }).join("")}</div>`; }).join("")}
+      <div class="box small"><b>Fora do programa atual:</b> ${esc(P.fora)}</div>
+      <p class="muted small" style="text-align:center">As questões resolvidas por tópico são as de Matemática do Enem 2025. Os outros anos entram nas próximas rodadas.</p>`;
+    $app.querySelectorAll("[data-pid]").forEach(c => c.onchange = () => { S.prog[c.dataset.pid] = c.checked; save(); programa(); });
+    $app.querySelectorAll("[data-pf]").forEach(b => b.onclick = () => { progF = b.dataset.pf; programa(); });
   }
 
   function emBreve(titulo, itens) {
@@ -485,6 +543,7 @@
       case "redacao": redacao(); break;
       case "dissertativo": emBreve("🖊️ Treino dissertativo", ["Questões discursivas da 2ª fase da Fuvest", "Você escreve a resolução e a IA corrige o raciocínio, passo a passo", "Filtro pela carreira (matérias específicas do 2º dia)", "Português dissertativo do 1º dia da 2ª fase"]); break;
       case "stats": stats(); break;
+      case "programa": programa(); break;
       default: home();
     }
     window.scrollTo(0, 0);
