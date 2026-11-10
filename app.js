@@ -3,7 +3,7 @@
 (function () {
   "use strict";
   const C = window.CONTEUDO, G = window.GABARITOS;
-  const VERSION = "v0.3";
+  const VERSION = "v0.4";
   const KEY = "bondvestibular_v0";
   const LIMITE = { D1: 330 * 60, D2: 300 * 60 }; // 5h30 e 5h
   const CORRECAO_URL = "https://www.preparaenem.com/enem/provas-gabaritos-e-correcoes-do-enem.htm";
@@ -279,10 +279,17 @@
     document.getElementById("cp").onclick = () => copy(prompt);
   }
 
+  const AREA_DE = { "Linguagens": "LC", "Ciências Humanas": "CH", "Ciências da Natureza": "CN", "Matemática": "MT" };
+  function progChips(areaNome) {
+    const a = AREA_DE[areaNome]; if (!a) return "";
+    const ms = Object.entries(window.PROGRAMA || {}).filter(([, v]) => v.area === a);
+    return `<div class="muted small" style="margin-top:6px">📋 Programa completo (Enem + Fuvest):</div><div class="disc progc">${ms.map(([n, v]) => `<span class="link gold" data-go="#/programa/${v.slug}">${esc(n)} ›</span>`).join("")}</div>
+      <div class="muted small" style="margin-top:12px">🗂️ Treinar no banco de questões:</div>`;
+  }
   const BANCO_DE = { "Português (gramática e interpretação)": "LC|Português", "Literatura": "LC|Literatura", "Artes": "LC|Artes", "Educação Física": "LC|Educação Física", "TIC": "LC|TIC", "História": "CH|História", "Geografia": "CH|Geografia", "Filosofia": "CH|Filosofia", "Sociologia": "CH|Sociologia", "Física": "CN|Física", "Química": "CN|Química", "Biologia": "CN|Biologia", "Matemática": "MT|Matemática" };
   function materias() {
     $app.innerHTML = `${top("📚 Matérias")}
-      ${C.materias.map(m => `<div class="box"><h3>${m.ic} ${m.area} <span class="tag">${m.dia}</span></h3>${(window.PROGRAMA || {})[m.area] ? `<button class="btn" style="margin:4px 0 10px" data-go="#/programa">📋 Programa completo (Enem + Fuvest)</button>` : ""}
+      ${C.materias.map(m => `<div class="box"><h3>${m.ic} ${m.area} <span class="tag">${m.dia}</span></h3>${progChips(m.area)}
         <div class="disc">${m.disc.map(d => { const b = BANCO_DE[d]; return b ? `<span class="link" data-banco="${b}">${esc(d)} ›</span>` : `<span>${esc(d)}</span>`; }).join("")}</div>
         <div class="muted small" style="margin-top:12px">O que mais costuma cair:</div>
         <ul style="margin:6px 0 0;padding-left:20px">${m.foco.map(f => `<li>${esc(f)}</li>`).join("")}</ul></div>`).join("")}
@@ -357,7 +364,7 @@
     if (BF.i >= lista.length) BF.i = Math.max(0, lista.length - 1);
     const q = lista[BF.i];
     const chips = (arr, cur, key) => arr.map(([v, l]) => `<button class="chip${cur === v ? " on" : ""}" data-f="${key}" data-v="${v}">${l}</button>`).join("");
-    const head = `${top(BF.topic ? esc(topicoNome(BF.topic)) : `${BF.mat}`, BF.topic ? "#/programa" : "#/banco")}
+    const head = `${top(BF.topic ? esc(topicoNome(BF.topic)) : `${BF.mat}`, BF.topic ? "#/programa/matematica" : "#/banco")}
       <div class="box" style="padding:14px 16px">
         <div class="chips">${chips([[0, "Todos os anos"], [2025, "2025"], [2024, "2024"], [2023, "2023"], [2022, "2022"]], BF.ano, "ano")}</div>
         <div class="chips" style="margin-top:8px">${chips([["todas", "Todas"], ["novas", "Não feitas"], ["erradas", "Que errei"]], BF.so, "so")}</div>
@@ -477,25 +484,28 @@
   }
 
   let progF = "todos";
-  function programa() {
-    const P = window.PROGRAMA["Matemática"]; S.prog = S.prog || {};
+  const progDe = slug => Object.entries(window.PROGRAMA || {}).find(([, v]) => v.slug === slug);
+  function programa(slug) {
+    const found = progDe(slug || "matematica"); if (!found) return go("#/materias");
+    const [nome, P] = found; S.prog = S.prog || {};
     const all = P.grupos.flatMap(g => g.itens), feitos = all.filter(i => S.prog[i.id]).length;
     const nQ = id => Q.filter(q => temaDe(q).includes(id)).length;
     const badge = p => p === "EF" ? `<span class="tag">Enem + Fuvest</span>` : p === "E" ? `<span class="tag" style="background:#173a5c;color:#9cc8ff">só Enem</span>` : `<span class="tag" style="background:#3b2f12;color:var(--gold)">só Fuvest</span>`;
     const ok = it => progF === "todos" || (progF === "enem" ? it.p.includes("E") : it.p.includes("F"));
-    $app.innerHTML = `${top("📐 Programa de Matemática", "#/materias")}
+    $app.innerHTML = `${top(`📋 ${esc(nome)}`, "#/materias")}
       <div class="box"><p style="margin:0 0 10px;line-height:1.55">${esc(P.intro)}</p>
         <div class="row" style="justify-content:space-between"><b>${feitos}/${all.length} estudados</b><span class="muted small">Fontes: Matriz de Referência do Enem (Inep) e programa da Fuvest 2027</span></div>
         <div class="progress" style="margin-top:10px"><i style="width:${pct(feitos, all.length)}%"></i></div>
-        <div class="chips" style="margin-top:12px">${[["todos", "Tudo"], ["enem", "Cai no Enem"], ["fuvest", "Cai na Fuvest"]].map(([v, l]) => `<button class="chip${progF === v ? " on" : ""}" data-pf="${v}">${l}</button>`).join("")}</div></div>
+        <div class="chips" style="margin-top:12px">${[["todos", "Tudo"], ["enem", "Cai no Enem"], ["fuvest", "Cai na Fuvest"]].map(([v, l]) => `<button class="chip${progF === v ? " on" : ""}" data-pf="${v}">${l}</button>`).join("")}</div>
+        <div class="row" style="margin-top:12px">${Q.some(q => q.area === P.area && matDe(q) === nome) ? `<button class="btn sec" data-banco="${P.area}|${nome}">🗂️ Treinar ${esc(nome)} no banco</button>` : ""}${nome === "Literatura" ? `<button class="btn sec" data-go="#/livros">📖 Livros da Fuvest</button>` : ""}</div></div>
       ${P.grupos.map(g => { const its = g.itens.filter(ok); if (!its.length) return ""; return `<div class="box"><h3>${esc(g.g)}</h3>
         ${its.map(it => { const n = nQ(it.id); return `<div class="topico"><label class="row" style="align-items:flex-start;gap:12px;flex-wrap:nowrap"><input type="checkbox" data-pid="${it.id}"${S.prog[it.id] ? " checked" : ""} style="margin-top:4px">
           <span style="flex:1"><b>${esc(it.t)}</b> ${badge(it.p)}<div class="muted small" style="margin-top:4px;line-height:1.5">${esc(it.d)}</div>
           ${n ? `<span class="link small" data-topico="${it.id}" style="display:inline-block;margin-top:6px;color:var(--gold);cursor:pointer;font-weight:800">📘 ${n} questã${n > 1 ? "ões" : "o"} resolvida${n > 1 ? "s" : ""} ›</span>` : ""}</span></label></div>`; }).join("")}</div>`; }).join("")}
-      <div class="box small"><b>Fora do programa atual:</b> ${esc(P.fora)}</div>
-      <p class="muted small" style="text-align:center">As questões resolvidas por tópico são as de Matemática do Enem 2025. Os outros anos entram nas próximas rodadas.</p>`;
-    $app.querySelectorAll("[data-pid]").forEach(c => c.onchange = () => { S.prog[c.dataset.pid] = c.checked; save(); programa(); });
-    $app.querySelectorAll("[data-pf]").forEach(b => b.onclick = () => { progF = b.dataset.pf; programa(); });
+      ${P.fora ? `<div class="box small"><b>Fora do programa atual:</b> ${esc(P.fora)}</div>` : ""}
+      <p class="muted small" style="text-align:center">Fontes: Matriz de Referência do Enem (Inep) e programa do Vestibular Fuvest 2027. Confira o edital da Fuvest 2028 quando sair.${nome === "Matemática" ? " As questões resolvidas por tópico são as de Matemática do Enem 2025." : ""}</p>`;
+    $app.querySelectorAll("[data-pid]").forEach(c => c.onchange = () => { S.prog[c.dataset.pid] = c.checked; save(); programa(slug); });
+    $app.querySelectorAll("[data-pf]").forEach(b => b.onclick = () => { progF = b.dataset.pf; programa(slug); });
   }
 
   function emBreve(titulo, itens) {
@@ -543,7 +553,7 @@
       case "redacao": redacao(); break;
       case "dissertativo": emBreve("🖊️ Treino dissertativo", ["Questões discursivas da 2ª fase da Fuvest", "Você escreve a resolução e a IA corrige o raciocínio, passo a passo", "Filtro pela carreira (matérias específicas do 2º dia)", "Português dissertativo do 1º dia da 2ª fase"]); break;
       case "stats": stats(); break;
-      case "programa": programa(); break;
+      case "programa": programa(arg); break;
       default: home();
     }
     window.scrollTo(0, 0);

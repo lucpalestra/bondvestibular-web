@@ -1,4 +1,4 @@
-# BondVestibular v0.3 · BondLabs
+# BondVestibular v0.4 · BondLabs
 
 Site estático (HTML + CSS + JS puro, sem build). É só extrair e publicar.
 
@@ -44,3 +44,6 @@ Os dados do usuário ficam no localStorage do navegador. Use Exportar/Importar n
 
 ## Atualizar o site (GitHub Pages)
 Extraia o pacote por cima da pasta e rode: `git pull`, `git add .`, `git commit -m "v0.3"`, `git push`.
+
+## Novidades v0.4
+- **Programa completo das 15 matérias** (Enem + Fuvest) em `data/programa.js`, com 203 tópicos, etiquetas Enem/Fuvest, checklist e filtro. Acesso em Matérias.

@@ -120,3 +120,5 @@ th{color:var(--muted);font-size:13px;text-transform:uppercase;border-top:0}
 .topico{padding:12px 0;border-top:1px solid var(--line)}
 .topico:first-of-type{border-top:0}
 .topico input{width:20px;height:20px;accent-color:var(--gold);flex-shrink:0}
+.disc span.link.gold{background:#3b2f12;color:var(--gold);border-color:#5a4718}
+.disc span.link.gold:hover{border-color:var(--gold)}
