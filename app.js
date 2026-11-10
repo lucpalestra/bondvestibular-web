@@ -3,7 +3,7 @@
 (function () {
   "use strict";
   const C = window.CONTEUDO, G = window.GABARITOS;
-  const VERSION = "v0.4";
+  const VERSION = "v0.5";
   const KEY = "bondvestibular_v0";
   const LIMITE = { D1: 330 * 60, D2: 300 * 60 }; // 5h30 e 5h
   const CORRECAO_URL = "https://www.preparaenem.com/enem/provas-gabaritos-e-correcoes-do-enem.htm";
@@ -503,7 +503,7 @@
           <span style="flex:1"><b>${esc(it.t)}</b> ${badge(it.p)}<div class="muted small" style="margin-top:4px;line-height:1.5">${esc(it.d)}</div>
           ${n ? `<span class="link small" data-topico="${it.id}" style="display:inline-block;margin-top:6px;color:var(--gold);cursor:pointer;font-weight:800">📘 ${n} questã${n > 1 ? "ões" : "o"} resolvida${n > 1 ? "s" : ""} ›</span>` : ""}</span></label></div>`; }).join("")}</div>`; }).join("")}
       ${P.fora ? `<div class="box small"><b>Fora do programa atual:</b> ${esc(P.fora)}</div>` : ""}
-      <p class="muted small" style="text-align:center">Fontes: Matriz de Referência do Enem (Inep) e programa do Vestibular Fuvest 2027. Confira o edital da Fuvest 2028 quando sair.${nome === "Matemática" ? " As questões resolvidas por tópico são as de Matemática do Enem 2025." : ""}</p>`;
+      <p class="muted small" style="text-align:center">Fontes: Matriz de Referência do Enem (Inep) e programa do Vestibular Fuvest 2027. Confira o edital da Fuvest 2028 quando sair.${nome === "Matemática" ? " As questões resolvidas por tópico são as de Matemática do Enem 2024 e 2025." : ""}</p>`;
     $app.querySelectorAll("[data-pid]").forEach(c => c.onchange = () => { S.prog[c.dataset.pid] = c.checked; save(); programa(slug); });
     $app.querySelectorAll("[data-pf]").forEach(b => b.onclick = () => { progF = b.dataset.pf; programa(slug); });
   }
