@@ -122,3 +122,40 @@ th{color:var(--muted);font-size:13px;text-transform:uppercase;border-top:0}
 .topico input{width:20px;height:20px;accent-color:var(--gold);flex-shrink:0}
 .disc span.link.gold{background:#3b2f12;color:var(--gold);border-color:#5a4718}
 .disc span.link.gold:hover{border-color:var(--gold)}
+
+/* Rodape institucional BondLabs */
+.bondlabs-footer{
+  max-width:760px;
+  margin:36px auto 0;
+  padding:38px 18px 28px;
+  text-align:center;
+  font-family:Georgia,"Times New Roman",serif;
+  color:var(--muted);
+}
+.bondlabs-footer-title{
+  margin:0 0 14px;
+  color:var(--text);
+  font-size:19px;
+}
+.bondlabs-footer-title a{
+  color:var(--gold);
+  text-decoration:none;
+  border-bottom:1px solid currentColor;
+}
+.bondlabs-footer-slogan{
+  margin:0 0 20px;
+  color:var(--gold);
+  font-size:16px;
+  font-style:italic;
+}
+.bondlabs-footer-divider{
+  height:1px;
+  max-width:440px;
+  margin:0 auto 18px;
+  background:var(--line);
+}
+.bondlabs-footer-copy{
+  margin:0;
+  font-size:13px;
+  color:var(--muted);
+}

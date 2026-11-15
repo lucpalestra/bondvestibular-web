@@ -84,7 +84,7 @@
             <div class="ch">›</div>
           </button>`).join("")}
       </div>
-      <div class="foot">${VERSION} · Gabaritos oficiais Inep · BondLabs</div>`;
+      `;
   }
 
   function provas() {
